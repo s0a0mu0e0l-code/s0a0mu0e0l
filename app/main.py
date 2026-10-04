@@ -352,6 +352,64 @@ async def liberar_download(arquivo: str, request: Request, db: Session = Depends
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Liberar Download - GeraDoc</title>
         {estilo}
+        <style>
+            .ad-container {{
+                background: #0f172a;
+                border-radius: 12px;
+                padding: 30px 20px;
+                text-align: center;
+                margin: 25px 0;
+                color: white;
+                position: relative;
+                overflow: hidden;
+            }}
+            .ad-label {{
+                position: absolute;
+                top: 8px;
+                left: 12px;
+                font-size: 11px;
+                background: rgba(255,255,255,0.15);
+                padding: 3px 8px;
+                border-radius: 4px;
+                color: #cbd5e1;
+            }}
+            .ad-title {{
+                font-size: 18px;
+                font-weight: 600;
+                margin: 20px 0 8px;
+            }}
+            .ad-desc {{
+                font-size: 14px;
+                color: #94a3b8;
+                margin-bottom: 20px;
+            }}
+            .countdown {{
+                font-size: 42px;
+                font-weight: 700;
+                color: #60a5fa;
+                margin: 10px 0;
+            }}
+            .progress-bar {{
+                width: 100%;
+                height: 6px;
+                background: #1e293b;
+                border-radius: 3px;
+                margin: 15px 0;
+                overflow: hidden;
+            }}
+            .progress-fill {{
+                height: 100%;
+                background: #3b82f6;
+                width: 0%;
+                transition: width 1s linear;
+            }}
+            .unlock-msg {{
+                display: none;
+                color: #4ade80;
+                font-weight: 600;
+                margin-bottom: 15px;
+            }}
+        </style>
     </head>
     <body>
         <div class="container">
@@ -360,15 +418,22 @@ async def liberar_download(arquivo: str, request: Request, db: Session = Depends
                 <h1>Seu documento está pronto!</h1>
                 <p class="subtitle">Assista ao anúncio para liberar o download</p>
 
-                <div class="ad-box">
-                    <strong>Espaço de Anúncio</strong>
-                    <p>Aqui entrará o anúncio real no futuro<br>(Google AdSense ou similar)</p>
+                <div class="ad-container">
+                    <div class="ad-label">Anúncio</div>
+                    <div class="ad-title">Espaço reservado para anúncio</div>
+                    <div class="ad-desc">Aqui entrará o anúncio real no futuro<br>(Google AdSense ou similar)</div>
+                    
                     <div class="countdown" id="contador">5</div>
-                    <p id="texto">Aguarde para liberar o download...</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="barra"></div>
+                    </div>
+                    <p id="texto" style="color:#94a3b8; font-size:14px;">Aguarde alguns segundos...</p>
                 </div>
 
+                <div class="unlock-msg" id="liberado">✓ Anúncio concluído! Você já pode baixar.</div>
+
                 <a href="/download/{arquivo}" class="btn" id="btn-download" style="display:none;">
-                    Baixar PDF
+                    Baixar PDF agora
                 </a>
 
                 <a href="/planos" class="btn btn-outline">Quero Premium (sem anúncio)</a>
@@ -381,14 +446,23 @@ async def liberar_download(arquivo: str, request: Request, db: Session = Depends
             const contador = document.getElementById('contador');
             const texto = document.getElementById('texto');
             const botao = document.getElementById('btn-download');
+            const barra = document.getElementById('barra');
+            const liberado = document.getElementById('liberado');
+
+            // Inicia a barra de progresso
+            setTimeout(() => {{
+                barra.style.width = '100%';
+            }}, 50);
 
             const timer = setInterval(() => {{
                 segundos--;
                 contador.innerText = segundos;
+
                 if (segundos <= 0) {{
                     clearInterval(timer);
                     contador.style.display = 'none';
-                    texto.innerText = 'Anúncio concluído! Você já pode baixar.';
+                    texto.style.display = 'none';
+                    liberado.style.display = 'block';
                     botao.style.display = 'block';
                 }}
             }}, 1000);
@@ -396,14 +470,6 @@ async def liberar_download(arquivo: str, request: Request, db: Session = Depends
     </body>
     </html>
     """)
-
-
-@app.get("/download/{nome_arquivo}")
-async def download_arquivo(nome_arquivo: str):
-    caminho = os.path.join(PDF_FOLDER, nome_arquivo)
-    if not os.path.exists(caminho):
-        return HTMLResponse("<h1>Arquivo não encontrado</h1>")
-    return FileResponse(caminho, media_type="application/pdf", filename=nome_arquivo)
 
 
 # ====================== FORMULÁRIOS ======================
